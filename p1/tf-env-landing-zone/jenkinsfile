@@ -1,0 +1,56 @@
+pipeline {
+    agent any
+    environment {
+
+        script {
+            def envVars = readProperties file: '.env'
+            envVars.each {key, value -> 
+                env[key] = value
+            }
+        }
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/zsievers/cloud-projects.git'
+            }
+        }
+        stage('Azure Login') {
+             steps {
+                        bat '''
+                        az login --service-principal -u %env.clientId% -p %env.clientSecret% --tenant %env.tenantId%
+                        '''
+                }
+        }
+        stage('Terraform init') {
+            steps {
+                bat '''
+                terraform init
+                '''
+            }
+        }
+        stage('Terraform Validate') {
+            steps {
+                bat '''
+                terraform validate
+                '''
+            }
+        }
+        stage('Terraform plan') {
+            steps {
+                bat '''
+                terraform plan -out=tfplan
+                '''
+            }
+        }
+        stage('Terraform Apply') {
+            steps {
+                input message: 'Apply the terraform plan?', ok: 'Deploy'
+                bat '''
+                terraform apply -auto-approve
+                '''
+            }
+        }
+    }
+}
