@@ -16,9 +16,9 @@ pipeline {
         }
         stage('Azure Login') {
              steps {
-                        bat '''
-                        az login --service-principal -u ${client_id} -p ${client_secret} --tenant ${tenant_id}
-                        '''
+                    bat '''
+                    az login --service-principal -u ${client_id} -p ${client_secret} --tenant ${tenant_id}
+                    '''
                 }
         }
 
@@ -36,14 +36,18 @@ pipeline {
 
         stage('Terraform init') {
             steps {
+                bat '''
                 cd tf-env-landing-zone/
                 terraform init
+                '''
             }
         }
 
         stage('Terraform Validate') {
             steps {
+                bat '''
                 terraform validate
+                '''
             }
         }
         stage('Terraform plan') {
@@ -55,8 +59,10 @@ pipeline {
         }
         stage('Terraform Apply') {
             steps {
+                bat '''
                 input message: 'Apply the terraform plan?', ok: 'Deploy'
                 terraform apply -auto-approve
+                '''
             }
         }
     }
