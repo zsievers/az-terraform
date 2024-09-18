@@ -1,14 +1,12 @@
 pipeline {
     agent any
-    environment {
+   environment {         
+    tenantId = credentials("${env.tenantId}")   
+    clientId = credentials("${env.clientId}")   
+    clientSecret = credentials("${env.clientSecret}") 
 
-        script {
-            def envVars = readProperties file: '.env'
-            envVars.each {key, value -> 
-                env[key] = value
-            }
-        }
-    }
+}
+ 
 
     stages {
         stage('Checkout') {
@@ -19,17 +17,32 @@ pipeline {
         stage('Azure Login') {
              steps {
                         bat '''
-                        az login --service-principal -u %env.clientId% -p %env.clientSecret% --tenant %env.tenantId%
+                        az login --service-principal -u %client_id% -p %client_secret% --tenant %tenant_id%
                         '''
                 }
         }
+
+         stage('Prepare Environment') {
+            steps {
+                script {
+                    // Ensure the directory exists
+                    bat '''
+                    def dirPath = "${env.WORKSPACE}/tf-env-landing-zone"
+                    sh "mkdir -p ${dirPath}"
+                    '''
+                }
+            }
+        }
+
         stage('Terraform init') {
             steps {
                 bat '''
+                cd tf-env-landing-zone/
                 terraform init
                 '''
             }
         }
+
         stage('Terraform Validate') {
             steps {
                 bat '''
