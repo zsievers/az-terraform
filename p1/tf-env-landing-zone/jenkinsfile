@@ -17,7 +17,7 @@ pipeline {
         stage('Azure Login') {
              steps {
                         bat '''
-                        az login --service-principal -u %client_id% -p %client_secret% --tenant %tenant_id%
+                        az login --service-principal -u ${client_id} -p ${client_secret} --tenant ${tenant_id}
                         '''
                 }
         }
@@ -28,7 +28,7 @@ pipeline {
                     // Ensure the directory exists
                     bat '''
                     def dirPath = "${env.WORKSPACE}/tf-env-landing-zone"
-                    sh "mkdir -p ${dirPath}"
+                    mkdir -p ${dirPath}
                     '''
                 }
             }
@@ -36,33 +36,25 @@ pipeline {
 
         stage('Terraform init') {
             steps {
-                bat '''
                 cd tf-env-landing-zone/
                 terraform init
-                '''
             }
         }
 
         stage('Terraform Validate') {
             steps {
-                bat '''
                 terraform validate
-                '''
             }
         }
         stage('Terraform plan') {
             steps {
-                bat '''
                 terraform plan -out=tfplan
-                '''
             }
         }
         stage('Terraform Apply') {
             steps {
                 input message: 'Apply the terraform plan?', ok: 'Deploy'
-                bat '''
                 terraform apply -auto-approve
-                '''
             }
         }
     }
