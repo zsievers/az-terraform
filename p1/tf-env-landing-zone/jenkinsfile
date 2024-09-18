@@ -48,7 +48,9 @@ pipeline {
         }
         stage('Terraform plan') {
             steps {
+                bat '''
                 terraform plan -out=tfplan
+                '''
             }
         }
         stage('Terraform Apply') {
